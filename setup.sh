@@ -1,5 +1,8 @@
 #!/bin/bash
 
+dir_goinfre=/goinfre/$USER/
+dir_archive=$dir_goinfre/images-archives
+
 # Reset All
 eval $(minikube docker-env)
 kubectl delete -k ./srcs
@@ -10,8 +13,6 @@ docker image rm -f ftps-server
 docker image rm -f wordpress-server
 docker image rm -f mysql-server
 
-dir_goinfre=/goinfre/$USER/
-dir_archive=$dir_goinfre/images-archives
 mkdir -p $dir_archive
 # build archive
 docker build -t nginx-server srcs/nginx

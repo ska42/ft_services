@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/01 02:09:51 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/01 02:10:42 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/01 02:59:29 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -68,7 +68,7 @@ open -g -a Docker
 which -s docker-machine
 if [[ $? != 0 ]] ; then
 	# Install docker-machine
-	brew install minikube
+	brew install docker-machine
 fi
 
 # =================================== LAUNCH ===================================

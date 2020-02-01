@@ -17,6 +17,8 @@ spec:
       containers:
       - name: nginx
         image: nginx-server
+        command: ["/bin/sh", "-c"]
+        args: [ "tail -f /dev/null" ]
         ports:
         - containerPort: 80
         - containerPort: 443
