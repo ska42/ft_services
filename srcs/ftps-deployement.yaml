@@ -17,9 +17,11 @@ spec:
       containers:
       - name: ftps
         image: ftps-server
+        imagePullPolicy: Never
+        command: ["/bin/sh", "-c"]
+        args: [ "tail -f /dev/null" ]
         ports:
         - containerPort: 21
-        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service

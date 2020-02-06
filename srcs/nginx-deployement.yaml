@@ -17,12 +17,12 @@ spec:
       containers:
       - name: nginx
         image: nginx-server
+        imagePullPolicy: Never
         command: ["/bin/sh", "-c"]
         args: [ "tail -f /dev/null" ]
         ports:
         - containerPort: 80
         - containerPort: 443
-        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service

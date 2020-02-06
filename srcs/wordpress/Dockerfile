@@ -1,4 +1,3 @@
 FROM wordpress:fpm-alpine
 
-EXPOSE 5050
-
+EXPOSE 80

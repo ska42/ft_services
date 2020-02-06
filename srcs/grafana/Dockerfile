@@ -1,3 +1,3 @@
 FROM alpine
 
-EXPOSE 3306
+EXPOSE 3000 

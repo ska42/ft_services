@@ -1,8 +1,13 @@
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=root
 resources:
-  - mysql-deployement.yaml
-  - wordpress-deployement.yaml
-#  - phpmyadmin.yml
-  - nginx-deployement.yaml
-  - ingress-deployement.yaml
-#  - influxdb.yml
   - ftps-deployement.yaml
+  - grafana-deployement.yaml
+  - influxdb-deployement.yaml
+  - ingress-deployement.yaml
+  - mysql-deployement.yaml
+  - nginx-deployement.yaml
+  - phpmyadmin-deployement.yaml
+  - wordpress-deployement.yaml
