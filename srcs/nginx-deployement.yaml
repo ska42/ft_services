@@ -37,12 +37,12 @@ spec:
         image: nginx-server
         imagePullPolicy: Never
         env:
-          - name: SSH-USERNAME
+          - name: SSH_USERNAME
             valueFrom:
               secretKeyRef:
                 name: ssh-user
                 key: username
-          - name: SSH-PASSWORD
+          - name: SSH_PASSWORD
             valueFrom:
               secretKeyRef:
                  name: ssh-user

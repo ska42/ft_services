@@ -9,5 +9,7 @@ mkdir -p /home/ftp
 
 chown nodoby:nogroup /home/ftp
 
+echo "$FTP_USERNAME\n$FTP_PASSWORD" >> /etc/vsftpd.userlist
+
 openrc
 touch /run/openrc/softlevel

@@ -34,12 +34,12 @@ spec:
         command: [ "/bin/sh", "-c" ]
         args: [ "tail -f /dev/null" ]
         env:
-          - name: FTPS-USERNAME
+          - name: FTPS_USERNAME
             valueFrom:
               secretKeyRef:
                 name: ftps-user
                 key: username
-          - name: FTPS-PASSWORD
+          - name: FTPS_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: ftps-user
