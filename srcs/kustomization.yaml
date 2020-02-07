@@ -8,6 +8,9 @@ secretGenerator:
   literals:
   - username=admin
   - password=admin
+- name: mysql-pass
+  literals:
+  - password=password
 # Resources
 resources:
   - ftps-deployement.yaml

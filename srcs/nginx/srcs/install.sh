@@ -1,4 +1,4 @@
-
+#!/bin/sh
 
 # Install
 apk add openrc --no-cache # rc-service

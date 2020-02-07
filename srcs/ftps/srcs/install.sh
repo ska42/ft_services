@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Install rc-service & vsftpd
-apk add openrc
-apk add vsftpd
+apk add openrc --no-cache
+apk add vsftpd --no-cache
 
 # create ftp's folders
 mkdir -p /var/empty
