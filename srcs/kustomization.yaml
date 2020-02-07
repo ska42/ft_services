@@ -1,7 +1,14 @@
+# Accounts
 secretGenerator:
-- name: mysql-pass
+- name: ftps-user
   literals:
-  - password=root
+  - username=admin
+  - password=admin
+- name: ssh-user
+  literals:
+  - username=admin
+  - password=admin
+# Resources
 resources:
   - ftps-deployement.yaml
 # - grafana-deployement.yaml

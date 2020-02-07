@@ -36,3 +36,14 @@ spec:
       - name: nginx
         image: nginx-server
         imagePullPolicy: Never
+        env:
+          - name: SSH-USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: ssh-user
+                key: username
+          - name: SSH-PASSWORD
+            valueFrom:
+              secretKeyRef:
+                 name: ssh-user
+                 key: password
