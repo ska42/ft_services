@@ -1,16 +1,3 @@
-# Accounts
-secretGenerator:
-- name: ftps-user
-  literals:
-  - username=admin
-  - password=admin
-- name: ssh-user
-  literals:
-  - username=admin
-  - password=admin
-- name: mysql-pass
-  literals:
-  - password=password
 # Resources
 resources:
   - ftps-deployement.yaml

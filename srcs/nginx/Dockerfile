@@ -1,8 +1,10 @@
 FROM nginx:alpine 
 
+# Copy files
 COPY srcs/install.sh /tmp/install.sh
 COPY srcs/nginx.conf /etc/nginx/nginx.conf
 
+# Run Install
 RUN sh /tmp/install.sh
 
 EXPOSE 22 80 443

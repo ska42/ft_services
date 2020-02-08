@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Install
-apk add openrc --no-cache # rc-service
+apk add openrc
 apk add openssl --no-cache # Certificat SSL
 apk add openssh --no-cache # ssh
 
@@ -9,8 +9,9 @@ apk add openssh --no-cache # ssh
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=FR/ST=75/L=Paris/O=42/CN=lmartin' -keyout /etc/ssl/certs/localhost.key -out /etc/ssl/certs/localhost.crt
 
 # ssh
-useradd $SSH_USERNAME
-echo $SSH_PASSWORD | passwd $SSH_USERNAME --stdin
+adduser -D "admin" 
+echo "admin:admin" | chpasswd
 
-# Update
+openrc
+touch /run/openrc/softlevel
 rc-update add sshd

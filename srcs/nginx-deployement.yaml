@@ -36,14 +36,7 @@ spec:
       - name: nginx
         image: nginx-server
         imagePullPolicy: Never
-        env:
-          - name: SSH_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: ssh-user
-                key: username
-          - name: SSH_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                 name: ssh-user
-                 key: password
+        command: [ "/bin/sh", "-c" ]
+        args: [ "/etc/init.d/sshd start; nginx -g 'daemon off;'" ]
+        securityContext:
+          privileged: true
