@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx-server
+        image: nginx-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
         args: [ "/etc/init.d/sshd start; nginx -g 'daemon off;'" ]

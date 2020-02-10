@@ -6,59 +6,46 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/08 03:46:45 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/10 21:51:43 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
-# delete all
-kubectl delete -k ./srcs
+
 # ================================== VARIABLES =================================
 
+srcs=./srcs
 dir_goinfre=/goinfre/$USER/
 dir_archive=$dir_goinfre/images-archives
 volumes=srcs/volumes
+services=(nginx ftps wordpress) # mysql)
+pvs=(wp) # mysql)
+
+# ================================== MINIKUBE ==================================
+
+# delete all
+kubectl delete -k $srcs
 
 # add minikube env variables
 eval $(minikube docker-env)
-# =================================== RESET ====================================
 
-# delete yaml
-kubectl delete pvc wp-pv-claim
-#kubectl delete pvc mysql-pv-claim
-kubectl delete pv wp-pv-volume
-#kubectl delete pv mysql-pv-volume
-
-# delete previous images
-docker image rm -f nginx-server
-docker image rm -f ftps-server
-docker image rm -f wordpress-server
-#docker image rm -f mysql-server
-
-# ================================== LAUNCH ====================================
-
-# volume and volume claim
-kubectl apply -f $volumes/wp-pv-volume.yaml
-#kubectl apply -f $volumes/mysql-pv-volume.yaml
-kubectl apply -f $volumes/wp-pv-claim.yaml
-#kubectl apply -f $volumes/mysql-pv-claim.yaml
+for pv in "${pvs[@]}"
+do
+	kubectl delete pvc $pv-pv-claim # delete yaml
+	kubectl delete pv $pv-pv-volume
+	kubectl apply -f $volumes/$pv-pv-volume.yaml # volume and volume claim
+	kubectl apply -f $volumes/$pv-pv-claim.yaml
+done
 
 # create path for archives if doesn't exist
 mkdir -p $dir_archive
 ## Save and get all customized images in minikube
-# build archive
-docker build -t nginx-server srcs/nginx
-docker build -t ftps-server srcs/ftps
-docker build -t wordpress-server srcs/wordpress
-#docker build -t mysql-server srcs/mysql
-# save to tar file
-docker save nginx-server > $dir_archive/nginx-server.tar
-docker save ftps-server > $dir_archive/ftps-server.tar
-docker save wordpress-server > $dir_archive/wordpress-server.tar
-#docker save mysql-server > $dir_archive/mysql-server.tar
-# load from tar file
-docker load < $dir_archive/nginx-server.tar
-docker load < $dir_archive/ftps-server.tar
-docker load < $dir_archive/wordpress-server.tar
-#docker load < $dir_archive/mysql-server.tar
-# Call kustomization
-kubectl apply -k ./srcs
+for service in "${services[@]}"
+do
+	docker image rm -f $service-image # delete previous images
+	docker build -t $service-image srcs/$service # build archive
+	docker save $service-image > $dir_archive/$service-image.tar # save to tar file
+	docker load < $dir_archive/$service-image.tar #load from tar file
+done 
+
+# apply kustomization --> yaml
+kubectl apply -k $srcs

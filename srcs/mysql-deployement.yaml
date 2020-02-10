@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: mysql-server
+        image: mysql-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
         args: [ "tail -f /dev/null" ]

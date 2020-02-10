@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: ftps
-        image: ftps-server
+        image: ftps-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
         args: [ "pure-ftpd -j -Y 2 -p 21000:21000 -P 192.168.99.117" ]

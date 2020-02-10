@@ -4,7 +4,7 @@ resources:
 # - grafana-deployement.yaml
 # - influxdb-deployement.yaml
   - ingress-deployement.yaml
-# - mysql-deployement.yaml
+  - mysql-deployement.yaml
   - nginx-deployement.yaml
 # - phpmyadmin-deployement.yaml
   - wordpress-deployement.yaml
