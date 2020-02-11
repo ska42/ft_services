@@ -20,14 +20,11 @@ spec:
       - name: mysql
         image: mysql-image
         imagePullPolicy: Never
-        command: [ "/bin/sh", "-c" ]
-        args: [ "tail -f /dev/null" ]
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: root
+        securityContext:
+          privileged: true
         ports:
-        - containerPort: 3306
-          name: mysql
+        - name: mysql
+          containerPort: 3306
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: "/var/lib/mysql"
@@ -44,7 +41,8 @@ metadata:
     app: mysql
 spec:
   ports:
-    - port: 3306
+    - name: mysql
+      port: 3306
   selector:
     app: mysql
     tier: mysql

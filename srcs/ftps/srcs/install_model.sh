@@ -11,5 +11,5 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem \
 -subj "/C=FR/ST=Anywhere/L=Here/O=42/OU=42/CN=lmartin/emailAddress=lmartin@student.42.fr"
 
-adduser -D "admin"
-echo "admin:admin" | chpasswd
+adduser -D "__FTPS_USERNAME__"
+echo "__FTPS_USERNAME__:__FTPS_PASSWORD__" | chpasswd
