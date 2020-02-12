@@ -1,10 +1,10 @@
 # Resources
 resources:
-  - ftps-deployement.yaml
-# - grafana-deployement.yaml
-# - influxdb-deployement.yaml
-  - ingress-deployement.yaml
-  - mysql-deployement.yaml
-  - nginx-deployement.yaml
-# - phpmyadmin-deployement.yaml
-  - wordpress-deployement.yaml
+  - ftps-deployment.yaml
+# - grafana-deployment.yaml
+# - influxdb-deployment.yaml
+  - ingress-deployment.yaml
+  - mysql-deployment.yaml
+  - nginx-deployment.yaml
+# - phpmyadmin-deployment.yaml
+  - wordpress-deployment.yaml
