@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/12 03:27:28 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/12 07:33:20 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -20,7 +20,7 @@ dir_minikube=$dir_goinfre/minikube
 dir_archive=$dir_goinfre/images-archives
 volumes=srcs/volumes
 
-services=(nginx ftps wordpress mysql)
+services=(nginx ftps wordpress mysql phpmyadmin)
 pvs=(wp mysql)
 
 # ================================== CONFIG ====================================
@@ -130,7 +130,7 @@ then
 		#If error
 		#VBoxManage hostonlyif remove vboxnet1
 	
-		export MINIKUBE_IP=$(minikube ip)
+		$(minikube ip) > /tmp/minikube.ip
 fi
 
 # ================================= DEPLOYMENT =================================
@@ -179,8 +179,24 @@ rm -f $srcs/ftps/srcs/install.sh
 rm -f $srcs/wordpress/srcs/wp-config.php
 rm -f $srcs/mysql/srcs/start.sh
 
+# wait for mysql
+echo "Waiting for deployments (20s)"
+sleep 20
+
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/srcs/wordpress.sql
+
 echo "Deployment Done"
-echo "Minikube IP is : $MINIKUBE_IP - Type 'minikube dashboard' for dashboard"
-echo "================================================================================"
-echo "ssh:		$SSH_USERNAME:$SSH_PASSWORD (port 22)"
-echo "ftps: 	$FTPS_USERNAME:$FTPS_PASSWORD (port 21)"
+ip=`cat /tmp/minikube.ip`
+echo " 
+Minikube IP is : $ip - Type 'minikube dashboard' for dashboard
+================================================================================
+			username:password
+ssh:		$SSH_USERNAME:$SSH_PASSWORD (port 22)
+ftps:		$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
+database:	$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
+accounts wordpress:
+			admin:admin (Admin)
+			lmartin:lmartin (Author)
+			norminet:norminet (Subscriber)
+			visitor:visitor (Susbscriber)"

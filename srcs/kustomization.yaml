@@ -6,5 +6,5 @@ resources:
   - ingress-deployment.yaml
   - mysql-deployment.yaml
   - nginx-deployment.yaml
-# - phpmyadmin-deployment.yaml
+  - phpmyadmin-deployment.yaml
   - wordpress-deployment.yaml
