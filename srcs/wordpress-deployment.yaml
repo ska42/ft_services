@@ -38,7 +38,9 @@ spec:
         image: wordpress-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
-        args: [ "httpd -DFOREGROUND" ]
+        args: [ "lighttpd -D -f /etc/lighttpd/lighttpd.conf" ]
+        securityContext:
+          privileged: true
         ports:
         - name: wordpress
           containerPort: 80

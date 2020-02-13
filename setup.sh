@@ -6,10 +6,23 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/12 07:33:20 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/13 05:44:24 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
+# ================================== CONFIG ====================================
+
+# SSH
+SSH_USERNAME=admin
+SSH_PASSWORD=admin
+# FTPS
+FTPS_USERNAME=admin
+FTPS_PASSWORD=admin
+# DB MYSQL (Can't change atm)
+DB_NAME=wordpress
+DB_USER=root
+DB_PASSWORD=password
+DB_HOST=mysql
 
 # ================================== VARIABLES =================================
 
@@ -22,37 +35,6 @@ volumes=srcs/volumes
 
 services=(nginx ftps wordpress mysql phpmyadmin)
 pvs=(wp mysql)
-
-# ================================== CONFIG ====================================
-
-# SSH
-SSH_USERNAME=admin
-SSH_PASSWORD=admin
-# FTPS
-FTPS_USERNAME=admin
-FTPS_PASSWORD=admin
-# DB MYSQL 
-DB_NAME=wordpress
-DB_USER=root
-DB_PASSWORD=password
-DB_HOST=mysql
-
-# copy models files
-cp $srcs/nginx/srcs/install_model.sh 			$srcs/nginx/srcs/install.sh
-cp $srcs/ftps/srcs/install_model.sh 			$srcs/ftps/srcs/install.sh
-cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
-cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
-# replace strings
-sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/install.sh
-sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
-sed -i '' s/__FTPS_USERNAME__/$FTPS_USERNAME/g	$srcs/ftps/srcs/install.sh
-sed -i '' s/__FTPS_PASSWORD__/$FTPS_PASSWORD/g	$srcs/ftps/srcs/install.sh
-sed -i '' s/__DB_NAME__/$DB_NAME/g				$srcs/wordpress/srcs/wp-config.php
-sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/wordpress/srcs/wp-config.php
-sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/wordpress/srcs/wp-config.php
-sed -i '' s/__DB_HOST__/$DB_HOST/g				$srcs/wordpress/srcs/wp-config.php
-sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/mysql/srcs/start.sh
-sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/mysql/srcs/start.sh
 
 # ================================== MINIKUBE ==================================
 
@@ -130,8 +112,31 @@ then
 		#If error
 		#VBoxManage hostonlyif remove vboxnet1
 	
-		$(minikube ip) > /tmp/minikube.ip
+		minikube ip > /tmp/minikube.ip
 fi
+
+# ============================== REPLACE MODELS ================================
+
+MINIKUBE_IP=`cat /tmp/minikube.ip`;
+
+# copy models files
+cp $srcs/nginx/srcs/install_model.sh 			$srcs/nginx/srcs/install.sh
+cp $srcs/ftps/srcs/install_model.sh 			$srcs/ftps/srcs/install.sh
+cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
+cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
+cp $srcs/wordpress/srcs/wordpress_model.sql		$srcs/wordpress/srcs/wordpress.sql
+# replace strings
+sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/install.sh
+sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
+sed -i '' s/__FTPS_USERNAME__/$FTPS_USERNAME/g	$srcs/ftps/srcs/install.sh
+sed -i '' s/__FTPS_PASSWORD__/$FTPS_PASSWORD/g	$srcs/ftps/srcs/install.sh
+sed -i '' s/__DB_NAME__/$DB_NAME/g				$srcs/wordpress/srcs/wp-config.php
+sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/wordpress/srcs/wp-config.php
+sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/wordpress/srcs/wp-config.php
+sed -i '' s/__DB_HOST__/$DB_HOST/g				$srcs/wordpress/srcs/wp-config.php
+sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/mysql/srcs/start.sh
+sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/mysql/srcs/start.sh
+sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
 
 # ================================= DEPLOYMENT =================================
 
@@ -173,23 +178,23 @@ echo "Creating all containers..."
 # apply kustomization --> yaml
 kubectl apply -k $srcs > /dev/null
 
-echo "Deleting temporary files..."
-rm -f $srcs/nginx/srcs/install.sh
-rm -f $srcs/ftps/srcs/install.sh
-rm -f $srcs/wordpress/srcs/wp-config.php
-rm -f $srcs/mysql/srcs/start.sh
-
 # wait for mysql
 echo "Waiting for deployments (20s)"
 sleep 20
 
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
-kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/srcs/wordpress.sql
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < $srcs/wordpress/srcs/wordpress.sql
+
+echo "Deleting temporary files..."
+rm -f $srcs/nginx/srcs/install.sh
+rm -f $srcs/ftps/srcs/install.sh
+rm -f $srcs/wordpress/srcs/wp-config.php
+rm -f $srcs/mysql/srcs/start.sh
+rm -f $srcs/wordpress/srcs/wordpress.sql
 
 echo "Deployment Done"
-ip=`cat /tmp/minikube.ip`
 echo " 
-Minikube IP is : $ip - Type 'minikube dashboard' for dashboard
+Minikube IP is : $MINIKUBE_IP - Type 'minikube dashboard' for dashboard
 ================================================================================
 			username:password
 ssh:		$SSH_USERNAME:$SSH_PASSWORD (port 22)
