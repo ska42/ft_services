@@ -1,8 +1,9 @@
 # Resources
 resources:
   - ftps-deployment.yaml
-# - grafana-deployment.yaml
-# - influxdb-deployment.yaml
+  - grafana-deployment.yaml
+  - influxdb-deployment.yaml
+  - telegraf-deployment.yaml
   - ingress-deployment.yaml
   - mysql-deployment.yaml
   - nginx-deployment.yaml

@@ -5,13 +5,13 @@ metadata:
   labels:
     app: mysql
 spec:
+  type: NodePort
   ports:
     - name: mysql
       port: 3306
+      nodePort: 3306
   selector:
     app: mysql
-    tier: mysql
-  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment

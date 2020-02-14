@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: influxdb
+  name: influxdb
+spec:
+  type: NodePort
+  ports:
+    - name: influxdb
+      port: 8086
+      nodePort: 8086
+  selector:
+    app: influxdb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - name: influxdb
+        image: influxdb-image
+        imagePullPolicy: Never
+        securityContext:
+          privileged: true
+        ports:
+        - name: influxdb
+          containerPort: 8086
+        volumeMounts:
+        - name: influxdb-persistent-storage
+          mountPath: /var/lib/influxdb
+      volumes:
+      - name: influxdb-persistent-storage
+        persistentVolumeClaim:
+          claimName: influxdb-pv-claim

@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/13 05:44:24 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/14 05:33:52 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -33,8 +33,8 @@ dir_minikube=$dir_goinfre/minikube
 dir_archive=$dir_goinfre/images-archives
 volumes=srcs/volumes
 
-services=(nginx ftps wordpress mysql phpmyadmin)
-pvs=(wp mysql)
+services=(nginx ftps wordpress mysql phpmyadmin grafana influxdb telegraf)
+pvs=(wp mysql influxdb)
 
 # ================================== MINIKUBE ==================================
 
@@ -106,8 +106,10 @@ then
 		docker-machine start
 
 		# Launch Minikube
-		minikube start --cpus=4 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000 
+		minikube start --cpus=4 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000 --bootstrapper=kubeadm
+		minikube addons enable dashboard
 		minikube addons enable ingress
+		minikube addons enable metrics-server
 
 		#If error
 		#VBoxManage hostonlyif remove vboxnet1
@@ -178,9 +180,11 @@ echo "Creating all containers..."
 # apply kustomization --> yaml
 kubectl apply -k $srcs > /dev/null
 
-# wait for mysql
-echo "Waiting for deployments (20s)"
-sleep 20
+while [[ $(kubectl get pods -l app=mysql -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
+	sleep 1;
+done
+
+sleep 30
 
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < $srcs/wordpress/srcs/wordpress.sql
@@ -197,9 +201,9 @@ echo "
 Minikube IP is : $MINIKUBE_IP - Type 'minikube dashboard' for dashboard
 ================================================================================
 			username:password
-ssh:		$SSH_USERNAME:$SSH_PASSWORD (port 22)
-ftps:		$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
-database:	$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
+ssh:			$SSH_USERNAME:$SSH_PASSWORD (port 22)
+ftps:			$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
+database:		$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
 accounts wordpress:
 			admin:admin (Admin)
 			lmartin:lmartin (Author)

@@ -1,0 +1,1 @@
+FROM telegraf:alpine
