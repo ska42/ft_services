@@ -9,6 +9,7 @@ spec:
   ports:
     - name: influxdb
       port: 8086
+      targetPort: 8086
       nodePort: 8086
   selector:
     app: influxdb

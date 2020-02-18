@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/14 05:33:52 by lmartin          ###   ########.fr        #
+#    Updated: 2020/02/18 22:06:15 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -26,15 +26,31 @@ DB_HOST=mysql
 
 # ================================== VARIABLES =================================
 
+# Directories
 srcs=./srcs
 dir_goinfre=/goinfre/$USER/
 docker_destination=/$dir_goinfre/docker
 dir_minikube=$dir_goinfre/minikube
 dir_archive=$dir_goinfre/images-archives
-volumes=srcs/volumes
+volumes=$srcs/volumes
 
-services=(nginx ftps wordpress mysql phpmyadmin grafana influxdb telegraf)
-pvs=(wp mysql influxdb)
+# You can comment service(s) if you want to test without some.
+services=(		\
+#	nginx		\
+	ftps		\
+	wordpress	\
+	mysql		\
+	phpmyadmin	\
+	grafana		\
+	influxdb	\
+	telegraf	\
+)
+# Volumes
+pvs=( 			\
+	wp 			\
+	mysql 		\
+	influxdb 	\
+)
 
 # ================================== MINIKUBE ==================================
 
@@ -106,7 +122,7 @@ then
 		docker-machine start
 
 		# Launch Minikube
-		minikube start --cpus=4 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000 --bootstrapper=kubeadm
+		minikube start --cpus=4 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000
 		minikube addons enable dashboard
 		minikube addons enable ingress
 		minikube addons enable metrics-server
@@ -127,6 +143,7 @@ cp $srcs/ftps/srcs/install_model.sh 			$srcs/ftps/srcs/install.sh
 cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
 cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
 cp $srcs/wordpress/srcs/wordpress_model.sql		$srcs/wordpress/srcs/wordpress.sql
+cp $srcs/telegraf-deployment_model.yaml			$srcs/telegraf-deployment.yaml
 # replace strings
 sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/install.sh
 sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
@@ -139,6 +156,7 @@ sed -i '' s/__DB_HOST__/$DB_HOST/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/mysql/srcs/start.sh
 sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/mysql/srcs/start.sh
 sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
+sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/telegraf-deployment.yaml
 
 # ================================= DEPLOYMENT =================================
 
@@ -161,19 +179,25 @@ done
 
 # create path for archives if doesn't exist
 mkdir -p $dir_archive
+# copy kuztomization
+cp -f $srcs/kustomization_model.yaml $srcs/kustomization.yaml
 ## Save and get all customized images in minikube
 echo "Building images:"
 for service in "${services[@]}"
 do
-	echo "	$service:"
-	echo "		Deleting previous image..."
-	docker image rm -f $service-image >/dev/null 2>&1 # delete previous images
-	echo "		Building new image..."
-	docker build -t $service-image srcs/$service > /dev/null # build archive
-	echo "		Saving new image..."
-	docker save $service-image > $dir_archive/$service-image.tar # save to tar file
-	echo "		Loading new image in minikube..."
-	docker load < $dir_archive/$service-image.tar > /dev/null #load from tar file
+	if [[ $2 != "nobuild" ]]
+	then
+		echo "	$service:"
+		echo "		Deleting previous image..."
+		docker image rm -f $service-image >/dev/null 2>&1 # delete previous images
+		echo "		Building new image..."		
+		docker build -t $service-image $srcs/$service > /dev/null # build archive
+		echo "		Saving new image..."
+		docker save $service-image > $dir_archive/$service-image.tar # save to tar file
+		echo "		Loading new image in minikube..."
+		docker load < $dir_archive/$service-image.tar > /dev/null #load from tar file
+	fi
+	echo "  - $service-deployment.yaml" >> $srcs/kustomization.yaml
 done 
 
 echo "Creating all containers..."
@@ -195,6 +219,8 @@ rm -f $srcs/ftps/srcs/install.sh
 rm -f $srcs/wordpress/srcs/wp-config.php
 rm -f $srcs/mysql/srcs/start.sh
 rm -f $srcs/wordpress/srcs/wordpress.sql
+rm -f $srcs/kustomization.yaml
+rm -f $srcs/telegraf-deployment.yaml
 
 echo "Deployment Done"
 echo " 
@@ -204,8 +230,9 @@ Minikube IP is : $MINIKUBE_IP - Type 'minikube dashboard' for dashboard
 ssh:			$SSH_USERNAME:$SSH_PASSWORD (port 22)
 ftps:			$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
 database:		$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
+grafana:		admin:admin
 accounts wordpress:
 			admin:admin (Admin)
 			lmartin:lmartin (Author)
 			norminet:norminet (Subscriber)
-			visitor:visitor (Susbscriber)"
+			visitor:visitor (Subscriber)"

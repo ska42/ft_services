@@ -31,6 +31,7 @@ spec:
         app: mysql
         tier: mysql
     spec:
+      restartPolicy: Always
       containers:
       - name: mysql
         image: mysql-image
