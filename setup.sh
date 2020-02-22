@@ -28,15 +28,15 @@ DB_HOST=mysql
 
 # Directories
 srcs=./srcs
-dir_goinfre=/goinfre/$USER/
-docker_destination=/$dir_goinfre/docker
+dir_goinfre=/Users/$USER # /goinfre/$USER at 42 or /sgoinfre - /Users/$USER at home on Mac
+docker_destination=$dir_goinfre/docker
 dir_minikube=$dir_goinfre/minikube
 dir_archive=$dir_goinfre/images-archives
 volumes=$srcs/volumes
 
 # You can comment service(s) if you want to test without some.
 services=(		\
-#	nginx		\
+ 	nginx		\
 	ftps		\
 	wordpress	\
 	mysql		\
@@ -88,7 +88,6 @@ then
 		ln -sf $dir_minikube /Users/$USER/.minikube
 
 		# DOCKER
-		docker_destination=/goinfre/$USER/docker
 		brew uninstall -f docker docker-compose
 		if [ ! -d "/Applications/Docker.app" ] && [ ! -d "~/Applications/Docker.app" ]; then
 			echo $'\033[0;34m'Please install $'\033[1;96m'Docker for Mac $'\033[0;34m'from the MSC \(Managed Software Center\)$'\033[0;39m'
