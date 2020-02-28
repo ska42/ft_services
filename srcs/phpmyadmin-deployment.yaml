@@ -31,6 +31,6 @@ spec:
           image: phpmyadmin-image 
           imagePullPolicy: Never
           command: [ "/bin/sh", "-c" ]
-          args: [ "lighttpd -D -f /etc/lighttpd/lighttpd.conf" ]
+          args: [ "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
           ports:
             - containerPort: 80

@@ -3,6 +3,8 @@
 apk add lighttpd \
 php7 php7-openssl php7-cgi php7-xml php7-pdo php7-mcrypt php7-session php7-mysqli php7-zlib php7-json \
  --no-cache
+apk add supervisor --no-cache
+apk add telegraf --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted --no-cache
 
 tar -xf /tmp/latest-fr_FR.tar.gz --strip-components=1 -C /var/www/localhost/htdocs
 rm -f /var/www/localhost/htdocs/wp-config-sample.php

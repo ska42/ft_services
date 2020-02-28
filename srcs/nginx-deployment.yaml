@@ -37,6 +37,6 @@ spec:
         image: nginx-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
-        args: [ "/etc/init.d/sshd start; nginx -g 'daemon off;'" ]
+        args: [ "/etc/init.d/sshd start; /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
         securityContext:
           privileged: true

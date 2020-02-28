@@ -10,7 +10,7 @@ spec:
     app: grafana
   ports:
     - name: http
-      port:	3000 
+      port:	3000
       nodePort: 3000 
 ---
 apiVersion: apps/v1
@@ -34,3 +34,6 @@ spec:
         imagePullPolicy: Never
         securityContext:
           privileged: true
+        command: [ "/bin/sh", "-c" ]
+        args: [ "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
+

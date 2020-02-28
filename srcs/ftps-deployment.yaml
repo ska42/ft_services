@@ -36,6 +36,6 @@ spec:
         image: ftps-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
-        args: [ "pure-ftpd -j -Y 2 -p 21000:21000 -P 192.168.99.117" ]
+        args: [ "/usr/bin/supervisord -n -c  /etc/supervisor/conf.d/supervisord.conf" ]
         securityContext:
           privileged: true
