@@ -1,9 +1,13 @@
 FROM influxdb:alpine
 
-COPY srcs/telegraf.conf /etc/telegraf/telegraf.conf
+USER root
 
-RUN apk add telegraf --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted --no-cache
+COPY srcs/install.sh /tmp/install.sh
+COPY srcs/telegraf.conf /etc/telegraf/telegraf.conf
+COPY srcs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN sh /tmp/install.sh && rm -f /tmp/install.sh
 
 EXPOSE 8086
 
-ENTRYPOINT telegraf
+ENTRYPOINT /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf

@@ -34,6 +34,3 @@ spec:
         imagePullPolicy: Never
         securityContext:
           privileged: true
-        command: [ "/bin/sh", "-c" ]
-        args: [ "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
-
