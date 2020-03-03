@@ -44,6 +44,7 @@ services=(		\
 	grafana		\
 	influxdb	\
 )
+
 # Volumes
 pvs=( 			\
 	wp 			\
@@ -167,18 +168,14 @@ sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
 
 # ================================= DEPLOYMENT =================================
 
-# delete all
-echo "Delete previous containers..."
-kubectl delete -k $srcs >/dev/null 2>&1
-
 # add minikube env variables
 eval $(minikube docker-env)
 
 for pv in "${pvs[@]}"
 do
 	echo "Delete $pv-pv claim & volume..."
-	kubectl delete pvc $pv-pv-claim >/dev/null 2>&1 # delete yaml
-	kubectl delete pv $pv-pv-volume >/dev/null 2>&1
+	kubectl delete -f pvc $pv-pv-claim >/dev/null 2>&1 # delete yaml
+	kubectl delete -f pv $pv-pv-volume >/dev/null 2>&1
 	echo "Apply $pv-pv claim & volume yaml..."
 	kubectl apply -f $volumes/$pv-pv-volume.yaml > /dev/null # volume and volume claim
 	kubectl apply -f $volumes/$pv-pv-claim.yaml > /dev/null
@@ -186,8 +183,6 @@ done
 
 # create path for archives if doesn't exist
 mkdir -p $dir_archive
-# copy kuztomization
-cp -f $srcs/kustomization_model.yaml $srcs/kustomization.yaml
 ## Save and get all customized images in minikube
 echo "Building images:"
 for service in "${services[@]}"
@@ -195,21 +190,17 @@ do
 	if [[ $2 != "nobuild" ]]
 	then
 		echo "	$service:"
-		echo "		Deleting previous image..."
-		docker image rm -f $service-image >/dev/null 2>&1 # delete previous images
 		echo "		Building new image..."		
 		docker build -t $service-image $srcs/$service > /dev/null # build archive
-		echo "		Saving new image..."
-		docker save $service-image > $dir_archive/$service-image.tar # save to tar file
-		echo "		Loading new image in minikube..."
-		docker load < $dir_archive/$service-image.tar > /dev/null #load from tar file
 	fi
-	echo "  - $service-deployment.yaml" >> $srcs/kustomization.yaml
+	if [[ $service == "nginx" ]]
+	then
+		echo "		Creating ingress for nginx..."
+		kubectl apply -f srcs/ingress-deployment.yaml > /dev/null
+	fi
+	echo "		Creating container..."
+	kubectl apply -f srcs/$service-deployment.yaml > /dev/null
 done 
-
-echo "Creating all containers..."
-# apply kustomization --> yaml
-kubectl apply -k $srcs > /dev/null
 
 sleep 30
 
@@ -233,7 +224,6 @@ rm -f $srcs/ftps/srcs/supervisord.conf
 rm -f $srcs/wordpress/srcs/wp-config.php
 rm -f $srcs/mysql/srcs/start.sh
 rm -f $srcs/wordpress/srcs/wordpress.sql
-rm -f $srcs/kustomization.yaml
 
 echo "Deployment Done"
 echo " 

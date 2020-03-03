@@ -1,4 +1,4 @@
-FROM influxdb:alpine
+FROM alpine
 
 USER root
 
@@ -10,4 +10,4 @@ RUN sh /tmp/install.sh && rm -f /tmp/install.sh
 
 EXPOSE 8086
 
-ENTRYPOINT /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
+ENTRYPOINT /usr/bin/supervisord -n -c  /etc/supervisor/conf.d/supervisord.conf

@@ -15,7 +15,7 @@ spec:
       port: 443
     - name: ssh
       port: 22
-      nodePort: 22
+      nodePort: 3022
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,6 +37,6 @@ spec:
         image: nginx-image
         imagePullPolicy: Never
         command: [ "/bin/sh", "-c" ]
-        args: [ "/etc/init.d/sshd start; /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
+        args: [ "/etc/init.d/nginx start; /etc/init.d/sshd start; telegraf" ]
         securityContext:
           privileged: true
