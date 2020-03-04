@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/03/05 00:09:24 by lmartin          ###   ########.fr        #
+#    Updated: 2020/03/05 00:32:36 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -290,6 +290,6 @@ ACCOUNTS:			(username:password)
 				visitor:visitor (Subscriber)
 
 TEST PERSISTENT MYSQL/INFLUXDB:
-	kubectl exec -it \$(kubectl get pods | grep mysql | cut -d" " -f1) -- /bin/sh -c "kill 1"
-	kubectl exec -it \$(kubectl get pods | grep influxdb | cut -d" " -f1) -- /bin/sh -c "kill 1"
+	kubectl exec -it \$(kubectl get pods | grep mysql | cut -d\" \" -f1) -- /bin/sh -c \"kill 1\"
+	kubectl exec -it \$(kubectl get pods | grep influxdb | cut -d\" \" -f1) -- /bin/sh -c \"kill 1\"
 "
