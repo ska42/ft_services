@@ -4,7 +4,8 @@ metadata:
   name: phpmyadmin
 spec:
   ports:
-    - port: 80
+    - name: http
+      port: 80
       nodePort: 5000
   selector:
     app: phpmyadmin
@@ -30,7 +31,5 @@ spec:
         - name: phpmyadmin
           image: phpmyadmin-image 
           imagePullPolicy: Never
-          command: [ "/bin/sh", "-c" ]
-          args: [ "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
           ports:
             - containerPort: 80

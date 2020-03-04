@@ -1,0 +1,14 @@
+FROM alpine
+
+USER root
+
+# Install scripts
+COPY srcs/install.sh /tmp/install.sh
+
+RUN /tmp/install.sh
+
+COPY srcs/telegraf.conf /etc/telegraf.conf
+
+EXPOSE 21 21000
+
+ENTRYPOINT /etc/init.d/telegraf start; pure-ftpd -j -Y 2 -p 21000:21000 -P __MINIKUBE_IP__

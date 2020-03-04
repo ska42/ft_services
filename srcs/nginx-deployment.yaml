@@ -36,7 +36,5 @@ spec:
       - name: nginx
         image: nginx-image
         imagePullPolicy: Never
-        command: [ "/bin/sh", "-c" ]
-        args: [ "/etc/init.d/nginx start; /etc/init.d/sshd start; telegraf" ]
         securityContext:
           privileged: true

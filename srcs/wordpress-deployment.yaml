@@ -37,8 +37,6 @@ spec:
       - name: wordpress
         image: wordpress-image
         imagePullPolicy: Never
-        command: [ "/bin/sh", "-c" ]
-        args: [ "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf" ]
         securityContext:
           privileged: true
         ports:

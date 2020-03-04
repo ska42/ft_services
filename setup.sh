@@ -139,7 +139,7 @@ MINIKUBE_IP=`cat /tmp/minikube.ip`;
 # copy models files
 cp $srcs/nginx/srcs/install_model.sh 			$srcs/nginx/srcs/install.sh
 cp $srcs/ftps/srcs/install_model.sh 			$srcs/ftps/srcs/install.sh
-cp $srcs/ftps/srcs/supervisord_model.conf		$srcs/ftps/srcs/supervisord.conf
+cp $srcs/ftps/Dockerfile_model					$srcs/ftps/Dockerfile
 cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
 cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
 cp $srcs/wordpress/srcs/wordpress_model.sql		$srcs/wordpress/srcs/wordpress.sql
@@ -151,13 +151,13 @@ cp $srcs/telegraf.conf							$srcs/mysql/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/wordpress/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/phpmyadmin/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/grafana/srcs/telegraf.conf
-cp $srcs/telegraf.conf							$srcs/influxdb/srcs/telegraf.conf
+#cp $srcs/telegraf.conf							$srcs/influxdb/srcs/telegraf.conf
 # replace strings
 sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/install.sh
 sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
 sed -i '' s/__FTPS_USERNAME__/$FTPS_USERNAME/g	$srcs/ftps/srcs/install.sh
 sed -i '' s/__FTPS_PASSWORD__/$FTPS_PASSWORD/g	$srcs/ftps/srcs/install.sh
-sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/ftps/srcs/supervisord.conf
+sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/ftps/Dockerfile
 sed -i '' s/__DB_NAME__/$DB_NAME/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/wordpress/srcs/wp-config.php
@@ -187,17 +187,16 @@ mkdir -p $dir_archive
 echo "Building images:"
 for service in "${services[@]}"
 do
-	if [[ $2 != "nobuild" ]]
-	then
-		echo "	$service:"
-		echo "		Building new image..."		
-		docker build -t $service-image $srcs/$service > /dev/null # build archive
-	fi
+	echo "	$service:"
+	echo "		Building new image..."		
+	docker build -t $service-image $srcs/$service > /dev/null # build archive
 	if [[ $service == "nginx" ]]
 	then
+		kubectl delete -f srcs/ingress-deployment.yaml >/dev/null 2>&1
 		echo "		Creating ingress for nginx..."
 		kubectl apply -f srcs/ingress-deployment.yaml > /dev/null
 	fi
+	kubectl delete -f srcs/$service-deployment.yaml > /dev/null 2>&1
 	echo "		Creating container..."
 	kubectl apply -f srcs/$service-deployment.yaml > /dev/null
 done 
@@ -207,20 +206,18 @@ sleep 30
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < $srcs/wordpress/srcs/wordpress.sql
 
-#kubectl exec -i $(kubectl get pods | grep influxdb | cut -d" " -f1) -- influx -execute 'CREATE DATABASE influxdb;' > /dev/null
-
 echo "Deleting temporary files..."
 rm -f $srcs/telegraf.conf
 rm -f $srcs/nginx/srcs/telegraf.conf
-rm -f $srcs/ftps/srcs/telegraf.conf
+rm -f $srcs/ftps/telegraf.conf
 rm -f $srcs/mysql/srcs/telegraf.conf
 rm -f $srcs/wordpress/srcs/telegraf.conf
 rm -f $srcs/phpmyadmin/srcs/telegraf.conf
 rm -f $srcs/grafana/srcs/telegraf.conf
-rm -f $srcs/influxdb/srcs/telegraf.conf
+#rm -f $srcs/influxdb/srcs/telegraf.conf
 rm -f $srcs/nginx/srcs/install.sh
 rm -f $srcs/ftps/srcs/install.sh
-rm -f $srcs/ftps/srcs/supervisord.conf
+rm -f $srcs/ftps/Dockerfile
 rm -f $srcs/wordpress/srcs/wp-config.php
 rm -f $srcs/mysql/srcs/start.sh
 rm -f $srcs/wordpress/srcs/wordpress.sql
