@@ -14,8 +14,7 @@
 # starting timer
 start=`date +%s`
 
-echo '
- ___ ___      __   ___  __          __   ___  __  
+echo ' ___ ___      __   ___  __          __   ___  __  
 |__   |      /__` |__  |__) \  / | /  ` |__  /__` 
 |     |  ___ .__/ |___ |  \  \/  | \__, |___ .__/                   by lmartin
 ================================================================================' 
@@ -243,7 +242,7 @@ do
 done
 
 # grafana dashboard
-kubectl exec -it $(kubectl get pods | grep grafana | cut -d" " -f1) -- /bin/sh -c "cat >> /usr/share/grafana/conf/provisioning/dashboards/global.json" < $srcs/grafana/srcs/global.json > /dev/null
+kubectl exec -i $(kubectl get pods | grep grafana | cut -d" " -f1) -- /bin/sh -c "cat >> /usr/share/grafana/conf/provisioning/dashboards/global.json" < $srcs/grafana/srcs/global.json > /dev/null 2>&1
 echo "Dashboard ok !"
 
 
