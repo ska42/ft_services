@@ -1,6 +1,6 @@
 # ft_services
 ft_services project @42
 
-## WARNING
+## usage
 
-THIS IS A WORK IN PROGRESS PROJECT
+`./setup.sh`
