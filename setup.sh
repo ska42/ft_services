@@ -10,6 +10,16 @@
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
+
+# starting timer
+start=`date +%s`
+
+echo '
+ ___ ___      __   ___  __          __   ___  __  
+|__   |      /__` |__  |__) \  / | /  ` |__  /__` 
+|     |  ___ .__/ |___ |  \  \/  | \__, |___ .__/                   by lmartin
+================================================================================' 
+
 # ================================== CONFIG ====================================
 
 # SSH
@@ -19,10 +29,8 @@ SSH_PASSWORD=admin
 FTPS_USERNAME=admin
 FTPS_PASSWORD=admin
 # DB MYSQL (Can't change atm)
-DB_NAME=wordpress
 DB_USER=root
 DB_PASSWORD=password
-DB_HOST=mysql
 
 # ================================== VARIABLES =================================
 
@@ -56,6 +64,7 @@ pvs=( 			\
 
 if [[ $1 != "deployment" ]]
 then
+		pre_config_start=`date +%s`
 		# BREW
 		which -s brew
 		if [[ $? != 0 ]] ; then
@@ -67,7 +76,7 @@ then
 			source $HOME/.zshrc
 		fi
 		echo "Updating brew..."
-		brew update
+		brew update > /dev/null
 
 		# KUBECTL
 		which -s kubectl
@@ -101,8 +110,13 @@ then
 			ln -sf $docker_destination/com.docker.docker ~/Library/Containers/com.docker.docker
 			ln -sf $docker_destination/.docker ~/.docker
 		fi
-		echo "Opening Docker..."
-		open -g -a Docker
+		
+		# Check if docker is running
+		docker_state=$(docker info >/dev/null 2>&1)
+		if [[ $? -ne 0 ]]; then
+			echo "Opening Docker..."
+			open -g -a Docker > /dev/null
+		fi
 
 		# DOCKER-MACHINE
 		which -s docker-machine
@@ -112,12 +126,13 @@ then
 			brew install docker-machine
 		fi
 
+		echo "Deleting previous docker-machine and minikube..."
 		# Stopping docker-machine & minikube if started
-		docker-machine stop
+		docker-machine stop > /dev/null
 		minikube delete
 
 		# Launch docker-machine
-		docker-machine create --driver virtualbox default
+		docker-machine create --driver virtualbox default > /dev/null
 		docker-machine start
 
 		# Launch Minikube
@@ -129,12 +144,15 @@ then
 		#If error
 		#VBoxManage hostonlyif remove vboxnet1
 	
-		minikube ip > /tmp/minikube.ip
+		minikube ip > /tmp/.minikube.ip
+		pre_config_end=`date +%s`	
+		runtime=$((pre_config_end-pre_config_start))
+		echo "Pre-config done - $runtime seconds)"
 fi
 
 # ============================== REPLACE MODELS ================================
 
-MINIKUBE_IP=`cat /tmp/minikube.ip`;
+MINIKUBE_IP=`cat /tmp/.minikube.ip`;
 
 # copy models files
 cp $srcs/nginx/srcs/install_model.sh 			$srcs/nginx/srcs/install.sh
@@ -143,6 +161,7 @@ cp $srcs/ftps/Dockerfile_model					$srcs/ftps/Dockerfile
 cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
 cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
 cp $srcs/wordpress/srcs/wordpress_model.sql		$srcs/wordpress/srcs/wordpress.sql
+cp $srcs/grafana/srcs/global_model.json			$srcs/grafana/srcs/global.json
 # telegraf
 cp $srcs/telegraf_model.conf					$srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/nginx/srcs/telegraf.conf
@@ -158,10 +177,8 @@ sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
 sed -i '' s/__FTPS_USERNAME__/$FTPS_USERNAME/g	$srcs/ftps/srcs/install.sh
 sed -i '' s/__FTPS_PASSWORD__/$FTPS_PASSWORD/g	$srcs/ftps/srcs/install.sh
 sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/ftps/Dockerfile
-sed -i '' s/__DB_NAME__/$DB_NAME/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/wordpress/srcs/wp-config.php
-sed -i '' s/__DB_HOST__/$DB_HOST/g				$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/mysql/srcs/start.sh
 sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/mysql/srcs/start.sh
 sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
@@ -171,12 +188,11 @@ sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
 # add minikube env variables
 eval $(minikube docker-env)
 
+echo "Creating Persistent Volumes..."
 for pv in "${pvs[@]}"
 do
-	echo "Delete $pv-pv claim & volume..."
 	kubectl delete -f pvc $pv-pv-claim >/dev/null 2>&1 # delete yaml
 	kubectl delete -f pv $pv-pv-volume >/dev/null 2>&1
-	echo "Apply $pv-pv claim & volume yaml..."
 	kubectl apply -f $volumes/$pv-pv-volume.yaml > /dev/null # volume and volume claim
 	kubectl apply -f $volumes/$pv-pv-claim.yaml > /dev/null
 done
@@ -187,7 +203,9 @@ mkdir -p $dir_archive
 echo "Building images:"
 for service in "${services[@]}"
 do
-	echo "	$service:"
+	# timer init
+	service_timer_start=`date +%s`
+	echo "	✨ $service:"
 	echo "		Building new image..."		
 	docker build -t $service-image $srcs/$service > /dev/null # build archive
 	if [[ $service == "nginx" ]]
@@ -199,40 +217,78 @@ do
 	kubectl delete -f srcs/$service-deployment.yaml > /dev/null 2>&1
 	echo "		Creating container..."
 	kubectl apply -f srcs/$service-deployment.yaml > /dev/null
+	sleep 1 # wait to get pod name
+	sed -i '' s/__$service-POD__/$(kubectl get pods | grep $service | cut -d" " -f1)/g $srcs/grafana/srcs/global.json
+	#end timer
+	service_timer_end=`date +%s`
+	runtime=$((service_timer_end-service_timer_start))
+	echo "	done - $runtime seconds"
 done 
 
-sleep 30
+echo "Waiting for mysql..."
+while [[ $(kubectl get pods -l app=mysql -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
+do
+		sleep 1;
+done
 
+# sql
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < $srcs/wordpress/srcs/wordpress.sql
+echo "Database wordpress created !"
+
+echo "Waiting for grafana..."
+while [[ $(kubectl get pods -l app=grafana -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
+do
+		sleep 1;
+done
+
+# grafana dashboard
+kubectl exec -it $(kubectl get pods | grep grafana | cut -d" " -f1) -- /bin/sh -c "cat >> /usr/share/grafana/conf/provisioning/dashboards/global.json" < $srcs/grafana/srcs/global.json > /dev/null
+echo "Dashboard ok !"
+
 
 echo "Deleting temporary files..."
-rm -f $srcs/telegraf.conf
-rm -f $srcs/nginx/srcs/telegraf.conf
-rm -f $srcs/ftps/telegraf.conf
-rm -f $srcs/mysql/srcs/telegraf.conf
-rm -f $srcs/wordpress/srcs/telegraf.conf
-rm -f $srcs/phpmyadmin/srcs/telegraf.conf
-rm -f $srcs/grafana/srcs/telegraf.conf
-#rm -f $srcs/influxdb/srcs/telegraf.conf
-rm -f $srcs/nginx/srcs/install.sh
-rm -f $srcs/ftps/srcs/install.sh
-rm -f $srcs/ftps/Dockerfile
-rm -f $srcs/wordpress/srcs/wp-config.php
-rm -f $srcs/mysql/srcs/start.sh
-rm -f $srcs/wordpress/srcs/wordpress.sql
+rm -f 	$srcs/telegraf.conf \
+		$srcs/nginx/srcs/telegraf.conf \
+		$srcs/ftps/telegraf.conf \
+		$srcs/mysql/srcs/telegraf.conf \
+		$srcs/wordpress/srcs/telegraf.conf \
+		$srcs/phpmyadmin/srcs/telegraf.conf \
+		$srcs/grafana/srcs/telegraf.conf \
+		$srcs/nginx/srcs/install.sh \
+		$srcs/ftps/srcs/install.sh \
+		$srcs/ftps/Dockerfile \
+		$srcs/wordpress/srcs/wp-config.php \
+		$srcs/mysql/srcs/start.sh \
+		$srcs/wordpress/srcs/wordpress.sql \
+		$srcs/grafana/srcs/global.json
 
-echo "Deployment Done"
+# end timer
+end=`date +%s`
+runtime=$((end-start))
+
+echo "✅		ft_services deployment done (Hourra ! - $runtime seconds)"
 echo " 
 Minikube IP is : $MINIKUBE_IP - Type 'minikube dashboard' for dashboard
 ================================================================================
-			username:password
-ssh:			$SSH_USERNAME:$SSH_PASSWORD (port 22)
-ftps:			$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
-database:		$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
-grafana:		admin:admin
-accounts wordpress:
-			admin:admin (Admin)
-			lmartin:lmartin (Author)
-			norminet:norminet (Subscriber)
-			visitor:visitor (Subscriber)"
+LINKS:
+	nginx:			https://$MINIKUBE_IP/ (or http)
+	wordpress:		http://$MINIKUBE_IP:5050
+	phpmyadmin:		http://$MINIKUBE_IP:5000
+	grafana:		http://$MINIKUBE_IP:3000
+
+OTHERS:
+	nginx:			ssh admin@$MINIKUBE_IP -p 3022
+	ftps:			$MINIKUBE_IP:21
+	
+ACCOUNTS:			(username:password)
+	ssh:			$SSH_USERNAME:$SSH_PASSWORD (port 3022)
+	ftps:			$FTPS_USERNAME:$FTPS_PASSWORD (port 21)
+	database:		$DB_USER:$DB_PASSWORD (sql / phpmyadmin)
+	grafana:		admin:admin
+	influxdb:		root:password (port 8086)
+	wordpress:
+				admin:admin (Admin)
+				lmartin:lmartin (Author)
+				norminet:norminet (Subscriber)
+				visitor:visitor (Subscriber)"
