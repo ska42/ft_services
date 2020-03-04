@@ -161,6 +161,7 @@ cp $srcs/wordpress/srcs/wp-config_model.php		$srcs/wordpress/srcs/wp-config.php
 cp $srcs/mysql/srcs/start_model.sh				$srcs/mysql/srcs/start.sh
 cp $srcs/wordpress/srcs/wordpress_model.sql		$srcs/wordpress/srcs/wordpress.sql
 cp $srcs/grafana/srcs/global_model.json			$srcs/grafana/srcs/global.json
+cp $srcs/nginx/srcs/index_model.html			$srcs/nginx/srcs/index.html
 # telegraf
 cp $srcs/telegraf_model.conf					$srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/nginx/srcs/telegraf.conf
@@ -169,7 +170,6 @@ cp $srcs/telegraf.conf							$srcs/mysql/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/wordpress/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/phpmyadmin/srcs/telegraf.conf
 cp $srcs/telegraf.conf							$srcs/grafana/srcs/telegraf.conf
-#cp $srcs/telegraf.conf							$srcs/influxdb/srcs/telegraf.conf
 # replace strings
 sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/install.sh
 sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/install.sh
@@ -181,6 +181,11 @@ sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/wordpress/srcs/wp-config.php
 sed -i '' s/__DB_USER__/$DB_USER/g				$srcs/mysql/srcs/start.sh
 sed -i '' s/__DB_PASSWORD__/$DB_PASSWORD/g		$srcs/mysql/srcs/start.sh
 sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/wordpress/srcs/wordpress.sql
+sed -i '' s/__MINIKUBE_IP__/$MINIKUBE_IP/g		$srcs/nginx/srcs/index.html
+sed -i '' s/__SSH_USERNAME__/$SSH_USERNAME/g	$srcs/nginx/srcs/index.html
+sed -i '' s/__SSH_PASSWORD__/$SSH_PASSWORD/g	$srcs/nginx/srcs/index.html
+sed -i '' s/__FTPS_USERNAME__/$FTPS_USERNAME/g	$srcs/nginx/srcs/index.html
+sed -i '' s/__FTPS_PASSWORD__/$FTPS_PASSWORD/g	$srcs/nginx/srcs/index.html
 
 # ================================= DEPLOYMENT =================================
 
@@ -260,7 +265,8 @@ rm -f 	$srcs/telegraf.conf \
 		$srcs/wordpress/srcs/wp-config.php \
 		$srcs/mysql/srcs/start.sh \
 		$srcs/wordpress/srcs/wordpress.sql \
-		$srcs/grafana/srcs/global.json
+		$srcs/grafana/srcs/global.json \
+		$srcs/nginx/srcs/index.html
 
 # end timer
 end=`date +%s`
