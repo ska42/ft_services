@@ -1,5 +1,4 @@
 #!/bin/sh
-mkdir -p /run/mysqld
 
 mysql_install_db --user=__DB_USER__
 tmp=sql_tmp

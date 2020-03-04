@@ -2,10 +2,7 @@
 
 # Install
 apk update
-apk add nginx --no-cache
-apk add openrc --no-cache 
-apk add openssl --no-cache 
-apk add openssh --no-cache 
+apk add openrc nginx openssl openssh --no-cache
 apk add telegraf --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted --no-cache
 
 # Request SSL key

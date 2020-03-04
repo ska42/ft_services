@@ -1,8 +1,7 @@
 #!/bin/sh
 
 apk update
-apk add openrc
-apk add lighttpd \
+apk add openrc lighttpd \
 php7 php7-openssl php7-cgi php7-xml php7-pdo php7-mcrypt php7-session php7-mysqli php7-zlib php7-json \
  --no-cache
 apk add telegraf --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted --no-cache

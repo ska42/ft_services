@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/02/18 22:06:15 by lmartin          ###   ########.fr        #
+#    Updated: 2020/03/04 22:29:41 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -35,7 +35,7 @@ DB_PASSWORD=password
 
 # Directories
 srcs=./srcs
-dir_goinfre=/Users/$USER # /goinfre/$USER at 42 or /sgoinfre - /Users/$USER at home on Mac
+dir_goinfre=/goinfre/$USER # /goinfre/$USER at 42 or /sgoinfre - /Users/$USER at home on Mac
 docker_destination=$dir_goinfre/docker
 dir_minikube=$dir_goinfre/minikube
 dir_archive=$dir_goinfre/images-archives
@@ -135,7 +135,7 @@ then
 		docker-machine start
 
 		# Launch Minikube
-		minikube start --cpus=4 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000
+		minikube start --cpus=2 --disk-size 11000 --vm-driver virtualbox --extra-config=apiserver.service-node-port-range=1-35000
 		minikube addons enable dashboard
 		minikube addons enable ingress
 		minikube addons enable metrics-server
