@@ -6,7 +6,7 @@
 #    By: lmartin <lmartin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/02/06 05:23:46 by lmartin           #+#    #+#              #
-#    Updated: 2020/03/04 22:29:41 by lmartin          ###   ########.fr        #
+#    Updated: 2020/03/05 00:09:24 by lmartin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 #!/bin/bash
@@ -221,7 +221,10 @@ do
 	kubectl delete -f srcs/$service-deployment.yaml > /dev/null 2>&1
 	echo "		Creating container..."
 	kubectl apply -f srcs/$service-deployment.yaml > /dev/null
-	sleep 1 # wait to get pod name
+	while [[ $(kubectl get pods -l app=$service -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
+	do
+		sleep 1;
+	done
 	sed -i '' s/__$service-POD__/$(kubectl get pods | grep $service | cut -d" " -f1)/g $srcs/grafana/srcs/global.json
 	#end timer
 	service_timer_end=`date +%s`
@@ -229,22 +232,10 @@ do
 	echo "	done - $runtime seconds"
 done 
 
-echo "Waiting for mysql..."
-while [[ $(kubectl get pods -l app=mysql -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
-do
-		sleep 1;
-done
-
 # sql
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;' > /dev/null
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < $srcs/wordpress/srcs/wordpress.sql
 echo "Database wordpress created !"
-
-echo "Waiting for grafana..."
-while [[ $(kubectl get pods -l app=grafana -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
-do
-		sleep 1;
-done
 
 # grafana dashboard
 kubectl exec -i $(kubectl get pods | grep grafana | cut -d" " -f1) -- /bin/sh -c "cat >> /usr/share/grafana/conf/provisioning/dashboards/global.json" < $srcs/grafana/srcs/global.json > /dev/null 2>&1
@@ -296,4 +287,9 @@ ACCOUNTS:			(username:password)
 				admin:admin (Admin)
 				lmartin:lmartin (Author)
 				norminet:norminet (Subscriber)
-				visitor:visitor (Subscriber)"
+				visitor:visitor (Subscriber)
+
+TEST PERSISTENT MYSQL/INFLUXDB:
+	kubectl exec -it \$(kubectl get pods | grep mysql | cut -d" " -f1) -- /bin/sh -c "kill 1"
+	kubectl exec -it \$(kubectl get pods | grep influxdb | cut -d" " -f1) -- /bin/sh -c "kill 1"
+"
